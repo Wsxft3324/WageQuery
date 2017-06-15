@@ -1,0 +1,87 @@
+﻿@using YcuWageQuery.Model;
+@{
+    Layout = null;
+}
+
+<div class="uk-panel uk-panel-box-modify uk-panel-userinfo" style="width:100%;">
+    <label>选择日期:</label>
+    <input type="text" class="datepicker startDate" placeholder="请选择日期" />
+    <input type="checkbox" class="IsEnd" style="width:15px;height:15px;" />
+    <span>到</span>
+    <input type="text" class="datepicker endDate" placeholder="请选择日期" />
+    <label>部门:</label>
+    <select class="depart-select">
+        <option value="0" selected="selected"></option>
+        @foreach (var d in ViewData["DepartinfoList"] as List<Department>)
+        {
+            <option value="@d.id">@d.DepartName</option>
+        }
+    </select>
+    <label>姓名搜索:</label>
+    <input type="text" class="search-uname" />
+    <label>选择类型:</label>
+    <select class="project-select">
+        @foreach (var t in ViewData["Wage_ProList"] as List<Wage_ProContrast>)
+        {
+            <option value="@t.WagePro">@t.Translation</option>
+        }
+    </select>
+    <input type="button" class="uk-button uk-button-primary btn-search" style="height:29px;line-height:normal;margin-left:25px;margin-bottom:3px;" value="查询" />
+</div>
+
+<div class="uk-panel uk-panel-box-modify uk-panel-modifypwd" style="margin-top:0;width:60%;padding:0;height:180px">
+    <div class="role-table page-wage-table" style="padding:0;margin:10px auto;width:100%!important;">
+        <span style="margin: 70px auto;display: block;font-size: 30px;width:400px" class="Project-Wage"></span>
+    </div>
+</div>
+
+<script type="text/javascript" class="currentSS">
+    var AfterLoadTr = function () {
+        $(".role-table table tbody tr").each(function (i, e) {
+            $(this).click(function () {
+                $("#modal5 .uk-modal-header").children("div").eq(0).children("span").eq(1).html($(e).children().eq(2).html() + "年" + $(e).children().eq(3).html() + "月");
+                $("#modal5 .PublicityCon").text("").append($(e).children("td:last-child").html());
+                $("#modal5").css("display", 'block').animate({ opacity: 1 }, 600);
+            });
+        });
+    };
+    $("#modal5").click(function () {
+        $("#modal5").animate({ opacity: 0 }, 600);
+        setTimeout('$("#modal5").css("display", "none")', 600);
+    });
+    $(".btn-search").click(function () {
+        var startDate = $(".startDate").val();
+        if (startDate.trim() == "") {
+            layer.msg("没有选择日期！", function () { });
+            return;
+        }
+        var endDate = $(".IsEnd").is(":checked") ? $(".endDate").val() : "";
+        var Project_type = $(".project-select option:selected").val();
+        var select_de = $(".depart-select option:selected").val();
+        var select_uname = $(".search-uname").val().trim();
+        $.post("/Wage/SearchProjectWage", { "startDate": startDate, "endDate": endDate, "select_de": select_de, "select_uname": select_uname, "Project_type": Project_type }, function (data) {
+            if (data.Statu == "ok") {
+                $(".Project-Wage").text($(".project-select option:selected").text() + "：" + data.Msg);
+            } else {
+                layer.msg("异常，未查到任何信息");
+            }
+        }, "json");
+    });
+    $(function () {
+        var myDate = new Date();
+        var myDate2 = new Date();
+        myDate.setFullYear(2013);
+        $(".datepicker").datepicker({
+            format: 'yyyy-mm',
+            weekStart: 1,
+            autoclose: true,
+            startView: 2,
+            maxViewMode: 2,
+            minViewMode: 1,
+            forceParse: false,
+            language: 'zh-CN',
+            startDate: myDate,
+            endDate: myDate2
+        });
+    });
+</script>

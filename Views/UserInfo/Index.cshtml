@@ -1,0 +1,321 @@
+﻿@using YcuWageQuery.Model;
+@{
+    Layout = null;
+}
+
+<div class="uk-panel uk-panel-box-modify uk-panel-userinfo">
+    <label>部门:</label>
+    <select class="depart-select">
+        <option value="0" selected="selected"></option>
+        @foreach (var d in ViewData["DepartinfoList"] as List<Department>)
+        {
+            <option value="@d.id">@d.DepartName</option>
+        }
+    </select>
+    <label>姓名搜索:</label>
+    <input type="text" class="search-uname" />
+    <input type="button" class="uk-button uk-button-primary btn-search" style="height:29px;line-height:normal;margin-bottom:3px;" value="查询" />
+    <a class="uk-button uk-button-primary" href="/UserInfo/DownLoadTempl" style="height:30px;line-height:2.5;text-decoration:none;font-size:12px;margin-left:40px;margin-bottom:3px;">下载模板</a>
+    <input type="button" class="uk-button uk-button-primary btn-Import" disabled style="height:30px;line-height:normal;margin-left:40px;margin-bottom:3px;" value="导入资料" />
+
+    <div class="u-upload uk-placeholder uk-text-center" style="width:100%;">
+        <span uk-icon="icon: cloud-upload"></span>
+        <span class="uk-text-middle">拖拽文件至此或</span>
+        <div uk-form-custom>
+            <input type="file" multiple>
+            <span class="uk-link">选择一个文件上传</span>
+        </div>
+    </div>
+    <progress id="progressbar" class="uk-progress" value="0" max="100" hidden></progress>
+</div>
+
+<div class="uk-panel uk-panel-box-modify uk-panel-modifypwd" style="margin-top:0;width:70.8%">
+    <div class="role-table" style="padding:0;margin:10px auto;width:100%!important">
+        <table class="uk-table uk-table-striped " style="table-layout:fixed;word-wrap:break-word">
+            <thead>
+                <tr>
+                    <th>人员编码</th>
+                    <th>姓名</th>
+                    <th style="width:190px">身份证号</th>
+                    <th style="width:190px">手机号</th>
+                    <th>性别</th>
+                    <th>所属部门</th>
+                    <th>状态</th>
+                    <th style="width:90px">备注</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var r in ViewData["UserinfoList"] as List<R_User_Depart>)
+                {
+                    <tr data-head="@r.id">
+                        <td>@r.UserCode</td>
+                        <td>@r.UserName</td>
+                        <td>@r.UserIdCard</td>
+                        <td>@r.UserPhone</td>
+                        <td>@r.Usex</td>
+                        <td data-head="@r.DepartID">@r.DepartName</td>
+                        <td data-head="@r.UState">
+                            @if (r.UState == 1)
+                            {
+                                @Html.Encode("启用");
+                            }
+                            else
+                            {
+                                @Html.Encode("未启用");
+                            }
+                        </td>
+                        <td style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="@r.Umark">@r.Umark</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="uk-notification uk-notification-bottom-center uk-notification-area-modify role-add">
+    <div class="uk-notification-message  uk-notification-modify">
+        <div>添加新人员</div>
+    </div>
+</div>
+
+<div id="modal6" class="uk-modal uk-open" aria-hidden="false" style="display: none;top:-700px;overflow-y: scroll;">
+    <div class="uk-modal-dialog uk-modal-modify" style="width:800px;">
+        <button type="button" class="uk-modal-close uk-close"></button>
+        <div class="uk-modal-header">
+            <h2>加入新人员</h2>
+        </div>
+        @using (Ajax.BeginForm("UserInfoOperate", "UserInfo", new { }, new AjaxOptions() { HttpMethod = "post", OnSuccess = "afterExeUserInfo" }, new { id = "userForm" }))
+        {
+            <p>
+                <span>角色编码:</span>
+                <input type="text" class="uk-input txtUserCode" style="width:65%;" name="UserCode" placeholder="必填" />
+            </p>
+            <p>
+                <span>人员名称:</span>
+                <input type="text" class="uk-input txtUserName" style="width:65%;" name="UserName" required placeholder="必填" />
+            </p>
+            <div style="clear:both"></div>
+            <p style="padding-left:5%;padding-right:0">
+                <span>身份证号:</span>
+                <input type="text" class="uk-input txtUserIdCard" style="width:65%;" name="UserIdCard" required placeholder="必填" />
+            </p>
+            <p style="padding-right:5%;padding-left:0">
+                <span>手&nbsp;&nbsp;机&nbsp;&nbsp;号:</span>
+                <input type="text" class="uk-input txtUserPhone" style="width:65%;" name="UserPhone" isMobile placeholder="可选" />
+            </p>
+            <div style="clear:both"></div>
+            <p style="width:33.333%;padding-left:5%">
+                <span>性&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;别:</span>
+                <select id="Usex" name="Usex">
+                    <option selected="selected" value="男">男</option>
+                    <option value="女">女</option>
+                </select>
+            </p>
+            <p style="width:33.333%;padding-left:5%;padding-right:0">
+                <span>状&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;态:</span>
+                <select id="UState" name="UState">
+                    <option selected="selected" value="1">启用</option>
+                    <option value="0">未启用</option>
+                </select>
+            </p>
+            <p style="width:33.333%">
+                <span>部&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;门:</span>
+                <select id="U_Depart" name="U_Depart">
+                    @foreach (var d in ViewData["DepartinfoList"] as List<Department>)
+                    {
+                        <option value="@d.id">@d.DepartName</option>
+                    }
+                </select>
+            </p>
+            <p style="padding-left:5%;padding-right:0;width:100%">
+                <span>备&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;注:</span>
+                <textarea class="uk-input txtUmark" style="width:78%;height:80px;" name="Umark" placeholder="可选"></textarea>
+            </p>
+            <input type="hidden" name="type" class="execType" />
+            <input type="hidden" name="id" class="execId" />
+            <div class="uk-modal-footer uk-text-right">
+                <button type="button" class="uk-button role-add-cancel">取消</button>
+                <button type="submit" class="uk-button uk-button-primary role-add-ok">保存</button>
+            </div>
+        }
+    </div>
+</div>
+
+<script type="text/javascript" class="currentSS">
+    var UserLoadTr = function () {
+        $(".role-table table tbody tr").each(function (i, e) {
+            $(this).click(function () {
+                layer.confirm('请选择操作', {
+                    btn: ['编辑', '删除', '取消']
+                }, function () {
+                    $("#modal6").css("display", 'block').animate({ top: 0 }, 600).find(".execType").val("modify").parent().find(".execId").val($(e).attr("data-head")).parent().siblings(".uk-modal-header").find("h2").html('修改人员信息');
+                    $(".txtUserCode").val($(e).children("td").eq(0).html());
+                    $(".txtUserName").val($(e).children("td").eq(1).html());
+                    $(".txtUserIdCard").val($(e).children("td").eq(2).html());
+                    $(".txtUserPhone").val($(e).children("td").eq(3).html());
+                    if ($(e).children("td").eq(4).html() != "") {
+                        $("#Usex").val($(e).children("td").eq(4).html().trim());
+                    }
+                    if ($(e).children("td").eq(5).html() != "") {
+                        $("#U_Depart").val($(e).children("td").eq(5).attr("data-head"));
+                    }
+                    else {
+                        $("#U_Depart").val(1);
+                    }
+                    if ($(e).children("td").eq(6).html() != "") {
+                        if ($(e).children("td").eq(6).attr("data-head") === "1") {
+                            $("#UState").val("1");
+                        }
+                        else {
+                            $("#UState").val("0");
+                        }
+                    }
+                    $(".txtUmark").val($(e).children("td").eq(7).html().trim());
+                    layer.closeAll();
+                }, function () {
+                    layer.confirm('是否要删除？', {
+                        btn: ['确认删除', '取消']
+                    }, function () {
+                        deleteUserInfo($(e).attr("data-head"));
+                    });
+                });
+            });
+        });
+    };
+    var UploadPro = function () {
+        var bar = $("#progressbar")[0];
+        UIkit.upload('.u-upload', {
+            url: '/UserInfo/UploadFiles',
+            multiple: true,
+            allow : '*.(xls|xlsx)',
+            beforeSend: function () {
+            },
+            beforeAll: function () {
+            },
+            load: function () {
+            },
+            error: function () {
+            },
+            complete: function () {
+            },
+            loadStart: function (e) {
+                bar.removeAttribute('hidden');
+                bar.max = e.total;
+                bar.value = e.loaded;
+            },
+            progress: function (e) {
+                bar.max = e.total;
+                bar.value = e.loaded;
+            },
+            loadEnd: function (e) {
+                bar.max = e.total;
+                bar.value = e.loaded;
+            },
+            completeAll: function (data) {
+                datas = eval("(" + data.responseText + ")");
+                $(".btn-Import").attr("data-url", datas.Url);
+                setTimeout(function () {
+                    bar.setAttribute('hidden', 'hidden');
+                    $(".btn-Import").removeAttr("disabled");
+                }, 1000);
+                layer.msg('上传成功');
+            }
+        });
+    };
+    $(".btn-search").click(function () {
+        var select_de = $(".depart-select option:selected").val();
+        var select_uname = $(".search-uname").val().trim();
+        $.post("/UserInfo/Index", { "select_de": select_de, "select_uname": select_uname }, function (data) {
+            $(".role-table table tbody").html("");
+            var str = '';
+            var ulTempl = '<tr data-head="{0}"><td>{1}</td><td>{2}</td><td>{3}</td><td>{4}</td><td>{5}</td><td data-head="{6}">{7}</td><td data-head="{8}">{9}</td><td style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="{10}">{10}</td>';
+            $.each(data, function (i, e) {
+                var UState_m = e.UState == "1" ? "启用" : "未启用";
+                e.UserCode = e.UserCode == null ? "" : e.UserCode;
+                e.DepartName = e.DepartName == null ? "" : e.DepartName;
+                e.DepartID = e.DepartID == null ? "" : e.DepartID;
+                e.Umark = e.Umark == null ? "" : e.Umark;
+                e.UserPhone = e.UserPhone == null ? "" : e.UserPhone;
+                str += ulTempl.format(e.id, e.UserCode, e.UserName, e.UserIdCard, e.UserPhone, e.Usex, e.DepartID, e.DepartName, e.UState, UState_m, e.Umark);
+            });
+            $(".role-table table tbody").html(str);
+            $(".role-table table tbody").ready(function () {
+                UserLoadTr();
+            });
+        }, "json");
+    });
+    $(".btn-Import").click(function () {
+        if (typeof ($(this).attr("data-url")) == "undefined" || $(this).attr("data-url") == "") {
+            layer.msg("路径信息错误，请重新刷新页面上传");
+            return false;
+        }
+        $.post("/UserInfo/Import", { "url": $(this).attr("data-url") }, function (data) {
+            if (data.Statu === "ok") {
+                $(".btn-Import").attr("disabled", "disabled").removeAttr("data-url");
+                var errRows = data.Data.ErrRows.substr(0, data.Data.ErrRows.length - 1);
+                layer.alert("导入成功行数：" + data.Data.SuccRowsNum + "<br/>导入失败行数：" + errRows, { title: data.Msg }, function () {
+                    location.reload();
+                });
+            } else {
+                layer.msg(data.Msg);
+            }
+        }, "json");
+    });
+    $(".role-add").click(function () {
+        $("#modal6").css("display", 'block').animate({ top: 0 }, 600).find("input,textarea").val("").parent().find(".execType").val("add").parent().siblings(".uk-modal-header").find("h2").html('加入新人员');
+    });
+    $(".role-add-cancel").click(function () {
+        $("#modal6").animate({ top: '-700px' }, 600);
+        setTimeout('$("#modal6").css("display", "none")', 600);
+    });
+    $("#userForm").validate({
+        rules: {
+            UserCode:{
+                required: true,
+                minlength: 2,
+            },
+            UserName: {
+                required:true,
+                minlength: 2,
+            },
+            UserIdCard: {
+                required: true,
+                isIdCardNo: true
+            },
+            UserPhone: {
+                minlength: 11,
+                isMobile: true
+            }
+        },
+        messages: {
+            UserCode: {
+                required: "请输入人员编码",
+                minlength: "名称不能小于两个字符"
+            },
+            UserName: {
+                required: "请输入姓名",
+                minlength: "名称不能小于两个字符"
+            },
+            UserIdCard: {
+                required: "请输入身份证号码",
+                isIdCardNo:"请正确填写身份证号码"
+            },
+            UserPhone: {
+                minlength: "确认手机不能小于11个字符",
+                isMobile: "请正确填写手机号码"
+            }
+        },
+    });
+    $(function () {
+        UserLoadTr();
+        UploadPro();
+    });
+    function deleteUserInfo(id) {
+        $.post("/UserInfo/DeleteUserInfo/" + id, function (data) {
+            E(data);
+        }, "json");
+    };
+    function afterExeUserInfo(data) {
+        E(data);
+    };
+</script>

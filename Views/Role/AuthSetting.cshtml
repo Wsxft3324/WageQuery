@@ -1,0 +1,153 @@
+﻿@using YcuWageQuery.Model;
+@{
+    Layout = null;
+}
+
+<div>
+    <div class="uk-panel uk-panel-box-modify">
+        <h4 class="uk-panel-title" style="width:20%;display:inline;color:#666;font-size:18px;margin-right:5px;">角色:</h4>
+        @foreach (var r in ViewData["roleList"] as List<Role>)
+        {
+            <div class="roleinfo-div"><label data-head="@r.id" >@r.RoleName</label></div>
+        }
+    </div>
+    <div class="uk-panel uk-panel-box-modify currAuth_Role" data-rid="">
+        <h4 class="uk-panel-title" style="width:20%;display:inline;color:#666;font-size:15px;margin:0 10px;">当前展示权限:</h4>
+        <label style="color:#e4393c;margin-right:10px;font-size:16px;"></label>
+        <input type="button" class="uk-button-primary select-allauth" style="font-size:14px;height:24px;margin:0 25px;" value="一键全选"/>
+        <input type="button" class="uk-button-primary select-clearauth" style="font-size:14px;height:24px;margin:0 25px;" value="清空权限" />
+        <input type="button" class="uk-button-primary saveModify" style="font-size:14px;height:24px;margin:0 25px;" disabled value="保存更改" />
+    </div>
+    <div style="clear:both"></div>
+    <div class="auth-Tree" style="position:relative;">
+    </div>
+</div>
+<script type="text/javascript" class="currentSS">
+    $(".roleinfo-div label").click(function (e) {
+        $(".select-clearauth").click();
+        $(".saveModify").attr("disabled", "disabled");
+        var rn = $(this).text();
+        var rid = $(this).attr("data-head");
+        $(".currAuth_Role").find("label").text(rn);
+        $(".currAuth_Role").attr("data-rid", rid);
+        if ($(".currAuth_Role").css("display") !== "block")
+            $(".currAuth_Role").css('display', 'block').animate({ height: '37px', opacity: 1 }, 600);
+        if ($(".auth-Tree").children().length == 0) {
+            var str = '';
+            var authTreeLeft = 0;
+            var authTreeID = 1;
+            var templ_auth = '<div class="uk-panel uk-panel-box-modify" style="width:19%;margin-top:10px;margin-right:1.25%;display:inline-block;position:absolute;left:{2}%"><input type="checkbox" data-head="{0}" id="authTree{3}" class="auth-TreeHead" style="width:18px;height:17px;"/><h4 class="uk-panel-title" style="margin:0;display:inline-block">{1}</h4><ul class="uk-list uk-list-striped">'
+            var templ_auth2 = '<li><input type="checkbox" data-head="{0}" style="width:15px;height:15px;"/><span>{1}</span></li>'
+            $.post("/Home/GetAllAction", function (AuthAlldata) {
+                $.each(AuthAlldata, function (i, e) {
+                    str += templ_auth.format(e.id, e.text, authTreeLeft, authTreeID);
+                    authTreeLeft = Number(authTreeLeft) + 20;
+                    authTreeID = Number(authTreeID) + 1;
+                    $.each(e.children, function (i, item) {
+                        str += templ_auth2.format(item.id, item.text);
+                    });
+                    str += '</ul></div>';
+                });
+                $(".auth-Tree").html(str);
+                $(".auth-Tree").ready(function () {
+                    getAuthTree(rid);
+                });
+            }, "json");
+        }
+        else {
+            getAuthTree(rid);
+        }
+    });
+    $(".select-allauth").click(function () {
+        $(".auth-Tree div").children("input").prop("checked", true).parent().children("ul").children().children("input").prop("checked", true);
+        $(".saveModify").removeAttr("disabled");
+    });
+    $(".select-clearauth").click(function () {
+        $(".auth-Tree div").children("input").prop("checked", false).parent().children("ul").children().children("input").prop("checked", false);
+        if ($(".auth-Tree").children().length !== 0)
+            for (var i = 1; i <= 5; i++)
+                document.getElementById("authTree" + i).indeterminate = false;
+        $(".saveModify").removeAttr("disabled");
+    });
+    $(".saveModify").click(function () {
+        var arr = [];
+        var Index = 0;
+        $(".auth-Tree div").each(function (i, e) {
+            var cb = $(this).children("input");
+            if ($(cb).is(":checked") || document.getElementById($(cb).attr("id")).indeterminate == true) {
+                arr.push($(cb).attr("data-head"));
+            }
+            $(this).children("ul").children().each(function (j, item) {
+                if ($(this).children("input").is(":checked")) {
+                    arr.push($(this).children("input").attr("data-head"));
+                }                   
+            });
+        });
+        $.post("/Role/SetRoleAuth/" + $(".currAuth_Role").attr("data-rid"), { "data": JSON.stringify(arr) }, function (data) {
+            E(data);
+        }, "json");
+    });
+    function getAuthTree(id) {
+        $.post("/Role/GetRoleAuth/" + id, function (data) {
+            if (data.length === 0) {
+                document.getElementById("authTree1").indeterminate = false;
+            }                
+            var authTreeID = 1;
+            $(".auth-Tree div").each(function (i, e) {
+                var checkAuth = 0;
+                var sumAuth = $(this).children("ul").children().length;
+                var cb = $(this).children("input");
+                $(cb).change(function () {
+                    $(".saveModify").removeAttr("disabled");
+                    if ($(this).is(":checked")) {
+                        $(this).siblings("ul").children().children("input").prop("checked", true);
+                    } else {
+                        $(this).siblings("ul").children().children("input").prop("checked", false);
+                    }
+                });
+                $(this).children("ul").children().each(function (j, item) {
+                    $(item).click(function () {
+                        $(".saveModify").removeAttr("disabled");
+                        var curli = getCheckAuth(this, sumAuth);
+                        if (curli == true) {
+                            $(cb).prop("checked", true);
+                            document.getElementById($(cb).attr("id")).indeterminate = false;
+                        } else if (curli == false) {
+                            $(cb).prop("checked", false);
+                            document.getElementById($(cb).attr("id")).indeterminate = true;
+                        } else {
+                            document.getElementById($(cb).attr("id")).indeterminate = false;
+                        }
+                    });
+                    if ($.inArray(Number($(item).children("input").attr("data-head")), data) > -1) {
+                        $(item).children("input").prop("checked", true);
+                        checkAuth = Number(checkAuth) + 1;
+                    }
+                });
+                if (checkAuth === sumAuth) {
+                    $(cb).prop("checked", true);
+                } else {
+                    if (checkAuth !== 0) {
+                        document.getElementById($(cb).attr("id")).indeterminate = true;
+                    }                       
+                }
+                authTreeID = Number(authTreeID) + 1;
+            });
+        }, "json");
+    };
+    function getCheckAuth(curli, sumAuth) {
+        var curCheckli = 0;
+        $(curli).parent().children().each(function (i, e) {
+            if ($(this).children("input").is(":checked")) {
+                curCheckli = Number(curCheckli) + 1;
+            }
+        });
+        if (curCheckli === 0) {
+            return "curli0";
+        }
+        if (curCheckli === sumAuth)
+            return true;
+        else
+            return false;
+    };
+</script>

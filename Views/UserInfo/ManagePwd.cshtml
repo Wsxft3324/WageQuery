@@ -1,0 +1,73 @@
+﻿@using YcuWageQuery.Model;
+@{
+    Layout = null;
+}
+<div class="uk-panel uk-panel-box-modify uk-panel-userinfo" style="width:48.8%">
+    <label>部门:</label>
+    <select class="depart-select">
+        <option value="0" selected="selected"></option>
+        @foreach (var d in ViewData["DepartinfoList"] as List<Department>)
+        {
+        <option value="@d.id">@d.DepartName</option>
+        }
+    </select>
+    <label>姓名搜索:</label>
+    <input type="text" class="search-uname" />
+    <input type="button" class="uk-button uk-button-primary btn-search" style="height:29px;line-height:normal;margin-bottom:3px;" value="查询" />
+</div>
+
+<div class="uk-panel uk-panel-box-modify uk-panel-modifypwd" style="margin-top:0;width:48.8%;display:none;">
+    <div class="role-table" style="padding:0;margin:10px auto;width:100%!important">
+        <table class="uk-table uk-table-striped " style="table-layout:fixed;word-wrap:break-word">
+            <thead>
+                <tr>
+                    <th>姓名</th>
+                    <th>所属部门</th>
+                    <th>重置</th>
+                </tr>
+            </thead>
+            <tbody>
+                
+            </tbody>
+        </table>
+    </div>
+
+</div>
+
+<script type="text/javascript" class="currentSS">
+    var UserLoadTr = function () {
+        $(".role-table table tbody tr").each(function (i, e) {
+            $(this).children().eq(2).click(function () {
+                layer.confirm('是否要重置？', {
+                    btn: ['确认重置', '取消']
+                }, function () {
+                    ReUserPwd($(e).attr("data-head"));
+                });
+            });
+        });
+    };
+    $(".btn-search").click(function () {
+        var select_de = $(".depart-select option:selected").val();
+        var select_uname = $(".search-uname").val().trim();
+        $.post("/UserInfo/Index", { "select_de": select_de, "select_uname": select_uname }, function (data) {
+            $(".role-table table tbody").html('');
+            $(".uk-panel-modifypwd").not(".publicity-info,.email-info").css("display", "block");
+            var str = '';
+            var ulTempl = '<tr data-head="{0}"><td>{1}</td><td>{2}</td><td><i class="icon-repeat" style="font-size:20px;"></i></td></tr>';
+            $.each(data, function (i, e) {
+                e.DepartName = e.DepartName == null ? "" : e.DepartName;
+                str += ulTempl.format(e.id, e.UserName, e.DepartName);
+            });
+            $(".role-table table tbody").html(str);
+            $(".role-table table tbody").ready(function () {
+                UserLoadTr();
+            });
+        }, "json");
+    });
+    function ReUserPwd(id) {
+        $.post("/UserInfo/ReUserPwd/" + id, function (data) {
+            E(data);
+        }, "json");
+    };
+
+</script>

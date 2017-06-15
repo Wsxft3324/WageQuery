@@ -1,0 +1,35 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<objects>
+  <object type="YcuWageQuery.BLL.UserInfoService, YcuWageQuery.BLL" name="UserInfoService" singleton="false" >
+  </object>
+  <object type="YcuWageQuery.BLL.DepartmentService, YcuWageQuery.BLL" name="DepartmentService" singleton="false" >
+  </object>
+  <object type="YcuWageQuery.BLL.R_User_DepartmentService, YcuWageQuery.BLL" name="R_User_DepartmentService" singleton="false" >
+  </object>
+  <object type="YcuWageQuery.BLL.R_User_DepartService, YcuWageQuery.BLL" name="R_User_DepartService" singleton="false" >
+  </object>
+  <object type="YcuWageQuery.BLL.R_User_Role_SService, YcuWageQuery.BLL" name="R_User_Role_SService" singleton="false" >
+  </object>
+  <object type="YcuWageQuery.BLL.PublicityService, YcuWageQuery.BLL" name="PublicityService" singleton="false" >
+  </object>
+  <object type="YcuWageQuery.BLL.R_User_PublicityService, YcuWageQuery.BLL" name="R_User_PublicityService" singleton="false" >
+  </object>
+  <object type="YcuWageQuery.BLL.EMailService, YcuWageQuery.BLL" name="EMailService" singleton="false" >
+  </object>
+  <object type="YcuWageQuery.BLL.RoleService, YcuWageQuery.BLL" name="RoleService" singleton="false" >
+  </object>
+  <object type="YcuWageQuery.BLL.R_User_RoleService, YcuWageQuery.BLL" name="R_User_RoleService" singleton="false" >
+  </object>
+  <object type="YcuWageQuery.BLL.AuthInfoService, YcuWageQuery.BLL" name="AuthInfoService" singleton="false" >
+  </object>
+  <object type="YcuWageQuery.BLL.R_Role_AuthService, YcuWageQuery.BLL" name="R_Role_AuthService" singleton="false" >
+  </object>
+  <object type="YcuWageQuery.BLL.Wage_ProContrastService, YcuWageQuery.BLL" name="Wage_ProContrastService" singleton="false" >
+  </object>
+  <object type="YcuWageQuery.BLL.WageService, YcuWageQuery.BLL" name="WageService" singleton="false" >
+  </object>
+  <object type="YcuWageQuery.BLL.R_User_WageService, YcuWageQuery.BLL" name="R_User_WageService" singleton="false" >
+  </object>
+  <object type="YcuWageQuery.Model.MessageModel, YcuWageQuery.Model" name="MessageModel" singleton="false" >
+  </object>
+</objects>

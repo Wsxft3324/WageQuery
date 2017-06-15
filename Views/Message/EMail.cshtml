@@ -1,0 +1,164 @@
+﻿@using YcuWageQuery.Model;
+@{
+    Layout = null;
+}
+
+<div class="uk-panel uk-panel-box-modify uk-panel-modifypwd" style="width:70.8%">
+    <div class="role-table" style="padding:0;margin:10px auto;width:75%!important">
+        <table class="uk-table uk-table-striped " style="table-layout:fixed;word-wrap:break-word">
+            <thead>
+                <tr>
+                    <th style="width:111px">邮件标题</th>
+                    <th>发件人</th>
+                    <th>收件人</th>
+                    <th style="width:180px">发布时间</th>
+                    <th>查看</th>
+                    <th>修改</th>
+                    <th>删除</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var r in ViewData["EmailInfoList"] as List<EMail>)
+                {
+                    <tr data-head="@r.id" data-con="@r.Con">
+                        <td style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="@r.Title">@r.Title</td>
+                        <td>@r.SendName</td>
+                        <td data-id="@r.RecipientID">@r.RecipientName</td>
+                        <td>@r.Subtime</td>
+                        <td><i class="icon-search" style="font-size:20px;"></i></td>
+                        <td><i class="icon-pencil" style="font-size:20px;"></i></td>
+                        <td><i class="icon-trash" style="font-size:20px;"></i></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="uk-notification uk-notification-bottom-center uk-notification-area-modify role-add">
+    <div class="uk-notification-message  uk-notification-modify">
+        <div>写新邮件</div>
+    </div>
+</div>
+
+<div id="modal5" class="uk-modal uk-open" aria-hidden="false" style="display: none;top:-130px;opacity:0;overflow-y: scroll;">
+    <div class="uk-modal-dialog uk-modal-modify" style="width:40%;overflow:auto;">
+        <button type="button" class="uk-modal-close uk-close"></button>
+        <div class="uk-modal-header">
+            <h2></h2>
+            <div class="PubSPerson"><span>发件人：</span><span style="width:180px;text-align:center;display:inline-block"></span></div>
+            <div class="PubRPerson"><span>收件人：</span><span style="width:180px;text-align:center;display:inline-block"></span></div>
+            <div class="PubStime"><span>发送时间：</span><span style="width:180px;text-align:center;display:inline-block"></span></div>
+        </div>
+        <p class="PublicityCon" style="text-align:initial"></p>
+    </div>
+</div>
+
+<div id="modal6" class="uk-modal uk-open" aria-hidden="false" style="display: none;top:-130px;opacity:0;overflow-y: scroll;">
+    <div class="uk-modal-dialog uk-modal-modify" style="width:40%;">
+        <button type="button" class="uk-modal-close uk-close"></button>
+        <div class="uk-modal-header">
+            <h2>添加公告</h2>
+            <div class="PubSPerson" style="display:none;"><span>发件人：</span><span style="width:180px;text-align:center;display:inline-block"></span></div>
+            <div class="PubRPerson" style="display:none;text-align:right"><span>收件人：</span><span style="width:180px;text-align:center;display:inline-block"></span></div>
+            <div class="PubStime" style="display:none;"><span>发送时间：</span><span style="width:180px;text-align:center;display:inline-block"></span></div>
+        </div>
+        @using (Ajax.BeginForm("EmailOperate", "Message", new { }, new AjaxOptions() { HttpMethod = "post", OnSuccess = "afterExeEmail" }, new { id = "EmailForm" }))
+            {
+            <p style="margin:15px 0;">
+                <span style="display:inline-block;margin:auto 15px;width:64px;">邮件标题:</span>
+                <input type="text" class="uk-input txtRN" style="width:65%;" required name="Title" placeholder="必填" />
+            </p>
+            <p style="">
+                <span style="display:inline-block;margin:auto 15px;width:64px;">改收件人:</span>
+                <select class="user-select" style="width:90px;height:35px;" name="RecipientID">
+                    @foreach (var d in ViewData["UserInfoList"] as List<UserInfo>)
+                    {
+                        <option value="@d.id">@d.UserName</option>
+                    }
+                </select>
+            </p>
+            <p style="">
+                <span style="display:inline-block;margin:auto 15px;width:64px;">邮件内容:</span>
+                <input id="editor" type="hidden" />
+                <input class="n_Con" type="hidden" name="Con" />
+            </p>
+            <input type="hidden" name="type" class="execType" />
+            <input type="hidden" name="id" class="execId" />
+                <div class="uk-modal-footer uk-text-right">
+                    <button type="button" class="uk-button role-add-cancel">取消</button>
+                    <button type="submit" class="uk-button uk-button-primary role-add-ok">保存</button>
+                </div>
+        }
+    </div>
+</div>
+
+<script type="text/javascript" class="currentSS">
+    $(".role-add").click(function () {
+        $("#modal6").css("display", 'block').animate({ opacity: 1 }, 600).find("input").val("").parent().find(".execType").val("add").parent().siblings(".uk-modal-header").find("h2").html('写邮件').siblings(".PubSPerson,.PubRPerson,.PubStime").css("display", "none").parent().parent().find(".simditor-body").html("");
+        $(".user-select")[0].selectedIndex = 0;
+    });
+    $(".role-add-cancel").click(function () {
+        $("#modal6").animate({ opacity: 0 }, 600);
+        setTimeout('$("#modal6").css("display", "none")', 600);
+    });
+    $("#modal5,#modal6").click(function () {
+        $("#modal5,#modal6").animate({ opacity: 0 }, 600);
+        setTimeout('$("#modal5,#modal6").css("display", "none")', 600);
+    });
+    $(".uk-modal-modify").click(function (event) {
+        event.stopPropagation();
+    });
+    $(".role-table table tbody tr").each(function (i, e) {
+        $(this).children().eq(4).click(function () {
+            $("#modal5 .uk-modal-header h2").text($(e).children().eq(0).html());
+            $("#modal5 .uk-modal-header").children("div").eq(0).children("span").eq(1).html($(e).children().eq(1).html());
+            $("#modal5 .uk-modal-header").children("div").eq(1).children("span").eq(1).html($(e).children().eq(2).html());
+            $("#modal5 .uk-modal-header").children("div").eq(2).children("span").eq(1).html($(e).children().eq(3).html());
+            $("#modal5 .PublicityCon").text("").append($(e).attr("data-con"));
+            $("#modal5").css("display", 'block').animate({ opacity: 1 }, 600);
+        });
+        $(this).children().eq(5).click(function () {
+            $("#modal6").css("display", 'block').animate({ opacity: 1 }, 600).find(".execType").val("modify").parent().find(".execId").val($(e).attr("data-head")).parent().siblings(".uk-modal-header").find("h2").html('修改邮件信息').parent().parent().find(".simditor-body").html("");
+            $("#modal6 .uk-modal-header").children("div").eq(0).css("display", "block").children("span").eq(1).html($(e).children().eq(1).html());
+            $("#modal6 .uk-modal-header").children("div").eq(1).css("display", "block").children("span").eq(1).html($(e).children().eq(2).html());
+            $("#modal6 .uk-modal-header").children("div").eq(2).css("display", "block").children("span").eq(1).html($(e).children().eq(3).html());
+            $(".user-select").val($(e).children().eq(2).attr("data-id"));
+            $(".txtRN").val($(e).children().eq(0).html());
+            $(".simditor-body").append($(e).attr("data-con"));
+        });
+        $(this).children().eq(6).click(function () {
+            layer.confirm('是否要删除？', {
+                btn: ['确认删除该邮件', '取消']
+            }, function () {
+                deleteEmail($(e).attr("data-head"));
+            });
+        });
+    });
+    $("#EmailForm").submit(function () {
+        $(".n_Con").val(BASE64.encoder($(".simditor-body").html()));
+    });
+    function deleteEmail(id) {
+        $.post("/Message/DeleteEmail/" + id, function (data) {
+            E(data);
+        }, "json");
+    };
+    function afterExeEmail(data) {
+        if (data.Statu === "ok") {
+            layer.msg(data.Msg);
+            setTimeout(function () {
+                location.reload();
+            }, 800);
+        } else if (data.Statu === "error") {
+            layer.msg(data.Msg);
+        }
+    };
+    $(function () {
+        $("#modal5 .uk-modal-modify").css("height", window.screen.height * 0.618);
+        $("#modal6 .uk-modal-modify").css("height", window.screen.height * 0.618);
+        var editor = new Simditor({
+            textarea: $('#editor'),
+        });
+
+    });
+</script>

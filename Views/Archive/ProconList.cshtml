@@ -1,0 +1,113 @@
+﻿@using YcuWageQuery.Model;
+@{
+    Layout = null;
+}
+
+<div class="uk-panel uk-panel-box-modify uk-panel-modifypwd">
+    <div class="role-table" style="padding:0;margin:10px auto;">
+        <table class="uk-table uk-table-striped ">
+            <thead>
+                <tr>
+                    <th>工资项目字段</th>
+                    <th>工资系统字段</th>
+                    <th>中文释义</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var d in ViewData["Wage_ProContrastList"] as List<Wage_ProContrast>)
+                {
+                    <tr data-head="@d.id">
+                        <td>@d.WagePro</td>
+                        <td>@d.ContrastTable</td>
+                        <td>@d.Translation</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="uk-notification uk-notification-bottom-center uk-notification-area-modify role-add">
+    <div class="uk-notification-message  uk-notification-modify">
+        <div>添加工资项对照</div>
+    </div>
+</div>
+
+<div id="modal6" class="uk-modal uk-open" aria-hidden="false" style="display: none;top:-700px;overflow-y: scroll;">
+    <div class="uk-modal-dialog uk-modal-modify">
+        <button type="button" class="uk-modal-close uk-close"></button>
+        <div class="uk-modal-header">
+            <h2>添加工资项对照</h2>
+        </div>
+        @using (Ajax.BeginForm("Wage_ProContrastOperate", "Archive", new { }, new AjaxOptions() { HttpMethod = "post", OnSuccess = "afterExeDepartment" }, new { id = "Wage_ProForm" }))
+            {
+            <p style="padding:10px 20%;margin-top:10px;">
+                <span style="display:inline;width:20%;margin:auto 15px;">工资对照项:</span>
+                <select class="wagePro-select" name="WagePro">
+                    <option value="0" selected="selected"></option>
+                    @foreach (var d in ViewData["Wage_ProList"] as List<string>)
+                    {
+                        <option value="@d">@d</option>
+                    }
+                </select>
+            </p>
+            <p style="padding:5px 20%;">
+                <span style="display:inline;width:20%;margin:auto 15px;">系统对照项:</span>
+                <input type="text" class="uk-input txtCT" style="width:65%;" name="ContrastTable" required placeholder="必填" />
+            </p>
+            <p style="padding:15px 20%;">
+                <span style="display:inline-block;text-align: right;width:20%;margin:auto 15px;">中文释义:</span>
+                <input type="text" class="uk-input txtTR" style="width:65%;" name="Translation" required placeholder="必填" />
+            </p>
+            <input type="hidden" name="type" class="execType" />
+            <input type="hidden" name="id" class="execId" />
+            <input type="hidden" name="typeId" class="typeId" />
+            <div class="uk-modal-footer uk-text-right">
+                <button type="button" class="uk-button role-add-cancel">取消</button>
+                <button type="submit" class="uk-button uk-button-primary role-add-ok">保存</button>
+            </div>
+        }
+    </div>
+</div>
+
+<script type="text/javascript" class="currentSS">
+    var type = @ViewData["type"];
+    $(".role-add").click(function () {
+        $(".wagePro-select option:eq(0)").val(0).text('');
+        $("#modal6").css("display", 'block').animate({ top: 0 }, 600).find("input").val("").parent().find(".execType").val("add").parent().find(".wagePro-select").val("0").parent().siblings(".uk-modal-header").find("h2").html('添加工资项对照');
+    });
+    $(".role-add-cancel").click(function () {
+        $("#modal6").animate({ top: '-700px' }, 600);
+        setTimeout('$("#modal6").css("display", "none")', 600);
+    });
+    $("#Wage_ProForm").submit(function () {
+        $(".typeId").val(type);
+    });
+    $(".role-table table tbody tr").each(function (i, e) {
+        $(this).click(function () {
+            layer.confirm('请选择操作', {
+                btn: ['编辑', '删除', '取消']
+            }, function () {
+                $("#modal6").css("display", 'block').animate({ top: 0 }, 600).find(".execType").val("modify").parent().find(".execId").val($(e).attr("data-head")).parent().siblings(".uk-modal-header").find("h2").html('修改对照信息');
+                $(".wagePro-select option:eq(0)").val($(e).children("td").eq(0).html()).text($(e).children("td").eq(0).html());
+                $(".txtCT").val($(e).children("td").eq(1).html());
+                $(".txtTR").val($(e).children("td").eq(2).html());
+                layer.closeAll();
+            }, function () {
+                layer.confirm('是否要删除？', {
+                    btn: ['确认删除', '取消']
+                }, function () {
+                    deleteDepartment($(e).attr("data-head"));
+                });
+            });
+        });
+    });
+    function deleteDepartment(id) {
+        $.post("/Archive/DeleteWage_ProContrast/" + id, function (data) {
+            E(data);
+        }, "json");
+    };
+    function afterExeDepartment(data) {
+        E(data);
+    };
+</script>

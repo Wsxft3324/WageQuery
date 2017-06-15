@@ -1,0 +1,147 @@
+﻿@using YcuWageQuery.Model;
+@{
+    Layout = null;
+}
+
+<div class="uk-panel uk-panel-box-modify uk-panel-userinfo" style="width:100%;">
+    <label>选择日期:</label>
+    <input type="text" class="datepicker startDate" placeholder="请选择日期" />
+    <input type="checkbox" class="IsEnd" style="width:15px;height:15px;" />
+    <span>到</span>
+    <input type="text" class="datepicker endDate" placeholder="请选择日期" />
+    <label>选择类型:</label>
+    <select class="wage-select">
+        <option value="3">代理工资</option>
+        <option value="2">奖金</option>
+    </select>
+    <input type="button" class="uk-button uk-button-primary btn-search" style="height:29px;line-height:normal;margin-left:25px;margin-bottom:3px;" value="查询" />
+</div>
+
+<div class="uk-panel uk-panel-box-modify uk-panel-modifypwd" style="margin-top:0;width:100%;padding:0;display:none;">
+    <div class="role-table page-wage-table" style="padding:0;margin:10px auto;width:100%!important;">
+        <table class="uk-table uk-table-striped " style="table-layout:fixed;word-wrap:break-word">
+            <thead>
+                <tr>
+                    <th>编码</th>
+                    <th>姓名</th>
+                    <th>年</th>
+                    <th>月</th>
+                    @foreach (var t in ViewData["Wage_ProList"] as List<Wage_ProContrast>)
+                    {
+                        <th>@t.Translation</th>
+                    }
+                    <th>备注</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+</div>
+
+<div class="uk-panel uk-panel-box-modify uk-panel-modifypwd" style="margin-top:0;width:100%;padding:0;display:none;">
+    <div class="role-table page-wage-table2" style="padding:0;margin:10px auto;width:60%!important;">
+        <table class="uk-table uk-table-striped " style="table-layout:fixed;word-wrap:break-word">
+            <thead>
+                <tr>
+                    <th>编码</th>
+                    <th>姓名</th>
+                    <th>年</th>
+                    <th>月</th>
+                    <th>奖金</th>
+                    <th>备注</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+</div>
+
+<div id="modal5" class="uk-modal uk-open" aria-hidden="false" style="display: none;top:-100px;opacity:0;overflow-y: scroll;">
+    <div class="uk-modal-dialog uk-modal-modify" style="width:40%;overflow:auto;">
+        <button type="button" class="uk-modal-close uk-close"></button>
+        <div class="uk-modal-header">
+            <h2>工资备注</h2>
+            <div class="PubStime"><span>工资时间：</span><span style="width:80px;text-align:center;display:inline-block"></span></div>
+        </div>
+        <p class="PublicityCon" style="text-align:initial"></p>
+    </div>
+</div>
+
+<script type="text/javascript" class="currentSS">
+    var AfterLoadTr = function () {
+        $(".role-table table tbody tr").each(function (i, e) {
+            $(this).click(function () {
+                $("#modal5 .uk-modal-header").children("div").eq(0).children("span").eq(1).html($(e).children().eq(2).html() + "年" + $(e).children().eq(3).html() + "月");
+                $("#modal5 .PublicityCon").text("").append($(e).children("td:last-child").html());
+                $("#modal5").css("display", 'block').animate({ opacity: 1 }, 600);
+            });
+        });
+    };
+    $("#modal5").click(function () {
+        $("#modal5").animate({ opacity: 0 }, 600);
+        setTimeout('$("#modal5").css("display", "none")', 600);
+    });
+    $(".btn-search").click(function () {
+        var startDate = $(".startDate").val();
+        if (startDate.trim() == "") {
+            layer.msg("没有选择日期！", function () { });
+            return;
+        }
+        var endDate = $(".IsEnd").is(":checked") ? $(".endDate").val() : "";
+        var type = $(".wage-select option:selected").val();
+        $.post("/Wage/SearchWage", { "startDate": startDate, "endDate": endDate, "type": type, "utype": "2" }, function (data) {
+            if (data.Statu == "error") {
+                layer.msg(data.Msg, function () { });
+                return;
+            }
+            var ulTempl = '';
+            var LoadClass = "page-wage-table";
+            if (data.length == 0) {
+                layer.msg("未查到信息！", function () { });
+                return;
+            }
+            $.each(data, function (i, e) {
+                ulTempl += '<tr>';
+                var t1 = '<td data-head="{0}">{1}</td><td>{2}</td><td>{3}</td><td>{4}</td>';
+                t1 = t1.format(e.id, e.UserCode, e.UserName, e.WageYear, e.WageMonth);
+                ulTempl += t1;
+                if (type == 2) {
+                    LoadClass += "2";
+                    ulTempl += "<td>" + e.Wage1 + "</td>";
+                    $(".page-wage-table").parent().css("display", "none");
+                    $(".page-wage-table2").parent().css("display", "block");
+                }
+                else {
+                    $(".page-wage-table").parent().css("display", "block");
+                    $(".page-wage-table2").parent().css("display", "none");
+                    for (var i = 1; i <= ($("." + LoadClass + " thead tr").children().length - 5) ; i++) {
+                        var t2 = eval('e.Wage' + i) == null ? "0" : eval('e.Wage' + i);
+                        ulTempl += "<td>" + t2 + "</td>";
+                    }
+                }
+                ulTempl += "<td>" + e.Wmark + "</td></tr>";
+            });
+            $("." + LoadClass + " table tbody").html("").append(ulTempl);
+            $("." + LoadClass + " table tbody").ready(function () {
+                AfterLoadTr();
+            });
+        }, "json");
+    });
+    $(function () {
+        var myDate = new Date();
+        var myDate2 = new Date();
+        myDate.setFullYear(2013);
+        $(".datepicker").datepicker({
+            format: 'yyyy-mm',
+            weekStart: 1,
+            autoclose: true,
+            startView: 2,
+            maxViewMode: 2,
+            minViewMode: 1,
+            forceParse: false,
+            language: 'zh-CN',
+            startDate: myDate,
+            endDate: myDate2
+        });
+    });
+</script>

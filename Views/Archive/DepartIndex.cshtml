@@ -1,0 +1,107 @@
+﻿@using YcuWageQuery.Model;
+@{
+    Layout = null;
+}
+
+<div class="uk-panel uk-panel-box-modify uk-panel-modifypwd">
+    <div class="role-table" style="padding:0;margin:10px auto;">
+        <table class="uk-table uk-table-striped ">
+            <thead>
+                <tr>
+                    <th>部门编码</th>
+                    <th>部门名称</th>
+                    <th>修改时间</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var d in ViewData["departmentList"] as List<Department>)
+                {
+                    <tr data-head="@d.id">
+                        <td>@d.id</td>
+                        <td>@d.DepartName</td>
+                        <td>@d.ModifiedTime</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="uk-notification uk-notification-bottom-center uk-notification-area-modify role-add">
+    <div class="uk-notification-message  uk-notification-modify">
+        <div>添加新部门</div>
+    </div>
+</div>
+
+<div id="modal6" class="uk-modal uk-open" aria-hidden="false" style="display: none;top:-700px;overflow-y: scroll;">
+    <div class="uk-modal-dialog uk-modal-modify">
+        <button type="button" class="uk-modal-close uk-close"></button>
+        <div class="uk-modal-header">
+            <h2>加入新部门</h2>
+        </div>
+        @using (Ajax.BeginForm("DepartmentOperate", "Archive", new { }, new AjaxOptions() { HttpMethod = "post", OnSuccess = "afterExeDepartment" }, new { id = "departmentForm" }))
+            {
+            <p style="padding:20px 20%;">
+                <span style="display:inline;width:20%;margin:auto 15px;">部门名称:</span>
+                <input type="text" class="uk-input txtRN" style="width:65%;" name="DepartName" required placeholder="必填" />
+            </p>
+            <input type="hidden" name="type" class="execType" />
+            <input type="hidden" name="id" class="execId" />
+            <div class="uk-modal-footer uk-text-right">
+                <button type="button" class="uk-button role-add-cancel">取消</button>
+                <button type="submit" class="uk-button uk-button-primary role-add-ok">保存</button>
+            </div>
+        }
+    </div>
+</div>
+
+<script type="text/javascript" class="currentSS">
+    $(".role-add").click(function () {
+        $("#modal6").css("display", 'block').animate({ top: 0 }, 600).find("input").val("").parent().find(".execType").val("add").parent().siblings(".uk-modal-header").find("h2").html('加入新部门');
+    });
+    $(".role-add-cancel").click(function () {
+        $("#modal6").animate({ top: '-700px' }, 600);
+        setTimeout('$("#modal6").css("display", "none")', 600);
+    });
+    $(".role-table table tbody tr").each(function (i, e) {
+        $(this).click(function () {
+            layer.confirm('请选择操作', {
+                btn: ['编辑', '删除', '取消']
+            }, function () {
+                $("#modal6").css("display", 'block').animate({ top: 0 }, 600).find(".execType").val("modify").parent().find(".execId").val($(e).attr("data-head")).parent().siblings(".uk-modal-header").find("h2").html('修改部门信息');
+                $(".txtRN").val($(e).children("td").eq(0).html());
+                layer.closeAll();
+            }, function () {
+                layer.confirm('是否要删除？', {
+                    btn: ['确认删除', '取消']
+                }, function () {
+                    deleteDepartment($(e).attr("data-head"));
+                });
+            });
+        });
+    });
+    function deleteDepartment(id) {
+        $.post("/Archive/DeleteDepartment/" + id, function (data) {
+            if (data.Statu === "ok") {
+                layer.msg(data.Msg);
+                setTimeout(function () {
+                    location.reload();
+                }, 800);
+            } else if (data.Statu === "error") {
+                layer.msg(data.Msg);
+            } else if (data.Statu === "error-re") {
+                layer.confirm(data.Msg, {
+                    btn: ['确认删除', '取消']
+                }, function () {
+                    $.post("/Archive/DeleteDepartment/" + id, { "sd": 1 }, function (data_re) {
+                        E(data_re);
+                    });
+                });
+            }
+        }, "json");
+    };
+    function afterExeDepartment(data) {
+        E(data);
+    };
+</script>
+

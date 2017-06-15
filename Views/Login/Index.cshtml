@@ -1,0 +1,75 @@
+﻿@{ 
+    Layout = null;
+}
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <meta name="loginport" content="ycu"/>
+    <title>登录-Ycu工资查询</title>
+    <link href="~/Content/css/uikit.min.css" rel="stylesheet" />
+    <link href="~/Content/css/site.css" rel="stylesheet" />
+    <script type="text/javascript" src="~/Scripts/jquery-1.7.1.min.js"></script>
+    <script type="text/javascript" src="~/Scripts/jquery.validate.min.js"></script>
+    <script type="text/javascript" src="~/Scripts/jquery.unobtrusive-ajax.min.js"></script>
+    <script type="text/javascript" src="~/Scripts/uikit.min.js"></script>
+    <script type="text/javascript" src="~/Scripts/notification.min.js"></script>
+    <script type="text/javascript" src="~/Scripts/layer.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            $(".background-img-shadow").load(function () {
+                var ww = (window.screen.availWidth - document.getElementById("background-img-shadow").width) / 2;
+                var wh = (window.screen.height - document.getElementById("background-img-shadow").height) / 2;
+                var r_wh = window.screen.height - window.screen.availHeight;
+                $(".login-form").css("height", document.getElementById("background-img-shadow").height + "px");
+                $(".uk-login-account").css("margin-top", (document.getElementById("background-img-shadow").height * 0.2452) + "px");
+                $(".uk-login-account,.uk-login-pwd").css("margin-left", (document.getElementById("background-img-shadow").width * 0.15) + "px");
+                $(".uk-form-width-medium").css("width", (document.getElementById("background-img-shadow").width * 0.52) + "px");
+                $(".sub-btn").css("width", (document.getElementById("background-img-shadow").width * 0.618) + "px");
+                $(".sub-btn").css("margin-left", (document.getElementById("background-img-shadow").width * 0.191) + "px");
+                $(".background-img-shadow,.login-form").css("top", window.screen.height*0.22 + "px");
+                $(".background-img-shadow,.login-form").css("left", "37.6%");
+            });            
+        });
+        function afterCheckLogin(data) {
+            if (data.Statu == "ok") {
+                window.location.href = data.Url;
+            } else if (data.Statu == "error") {
+                UIkit.notification({
+                    message: data.Msg,
+                    status: 'info',
+                    timeout: 3000,
+                    pos: 'top-center'
+                });
+            }
+        }
+    </script>
+
+</head>
+<body>
+    <img class="background-img" src="~/Content/images/login_background.png"/>
+    <img class="background-img-shadow" id="background-img-shadow" src="~/Content/images/login_background_shadow_2.png" />
+    <div class="login-form">
+        @using (Ajax.BeginForm("UserLogin", "Login", new { }, new AjaxOptions() { HttpMethod = "post", OnSuccess = "afterCheckLogin" }, new { id = "loginForm" }))
+        {
+            <div class="login-main">
+                <div class="uk-form-row uk-login-account">
+                    <span>账户名：</span>
+                    <input name="LoginAccount" type="text" placeholder="身份证号或手机号" class="uk-form-width-medium" />
+                </div>
+                <div class="uk-form-row uk-login-pwd">
+                    <span>密&nbsp;&nbsp;&nbsp;码：</span>
+                    <input name="LoginPwd" type="password" placeholder="密码" class="uk-form-width-medium" />
+                </div>
+                <div>
+                    <input type="submit" class="uk-button uk-button-primary sub-btn" value="登陆" />
+                </div>
+            </div>
+
+        }
+
+    </div>
+
+</body>
+</html>

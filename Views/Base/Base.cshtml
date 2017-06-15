@@ -1,0 +1,15 @@
+﻿
+@{
+    Layout = null;
+}
+
+<script>
+    var Days = 30;
+    var exp = new Date();
+    exp.setTime(exp.getTime() + Days * 24 * 60 * 60 * 1000);
+    var oh = window.location.href;
+    document.cookie = "oh=" + escape(oh) + ";expires=" + exp.toGMTString() + ";path=/";
+    window.location.href = "/";
+</script>
+
+

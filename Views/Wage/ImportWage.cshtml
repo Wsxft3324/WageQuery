@@ -1,0 +1,144 @@
+﻿@using YcuWageQuery.Model;
+@{
+    Layout = null;
+}
+
+<div class="uk-panel uk-panel-box-modify uk-panel-userinfo" style="width:100%;">
+    @*<label>选择日期:</label>
+    <input type="text" class="datepicker" placeholder="请选择日期" />*@
+    <input type="button" class="uk-button uk-button-primary btn-search" style="height:29px;line-height:normal;margin-left:25px;margin-bottom:3px;display:none" value="查询" />
+    <a class="uk-button uk-button-primary btn-download" href="/Wage/DownLoadTempl/1" style="height:30px;line-height:2.5;text-decoration:none;font-size:12px;margin-left:40px;margin-bottom:3px;">下载工资模板</a>
+    <input type="button" class="uk-button uk-button-primary btn-Import" disabled style="height:30px;line-height:normal;margin-left:40px;margin-bottom:3px;" value="导入工资" />
+
+    <div class="u-upload uk-placeholder uk-text-center">
+        <span uk-icon="icon: cloud-upload"></span>
+        <span class="uk-text-middle">拖拽文件至此或</span>
+        <div uk-form-custom>
+            <input type="file" multiple>
+            <span class="uk-link">选择一个文件上传</span>
+        </div>
+    </div>
+    <progress id="progressbar" class="uk-progress" value="0" max="100" hidden></progress>
+</div>
+
+<div class="uk-panel uk-panel-box-modify uk-panel-modifypwd" style="margin-top:0;width:100%;display:none;">
+    <div class="role-table" style="padding:0;margin:10px auto;width:100%!important">
+        <table class="uk-table uk-table-striped " style="table-layout:fixed;word-wrap:break-word">
+            <thead>
+                <tr>
+                    <th>编码</th>
+                    <th>姓名</th>
+                    <th>部门</th>
+                    @foreach (var t in ViewData["Wage_ProList"] as List<Wage_ProContrast>)
+                    {
+                        <th>@t.Translation</th>
+                    }                 
+                    <th>备注</th>
+                </tr>
+            </thead>
+            <tbody>
+                
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script type="text/javascript" class="currentSS">
+    var UploadPro = function () {
+        var bar = $("#progressbar")[0];
+        UIkit.upload('.u-upload', {
+            url: '/Wage/UploadFiles',
+            multiple: true,
+            allow : '*.(xls|xlsx)',
+            beforeSend: function () {
+            },
+            beforeAll: function () {
+            },
+            load: function () {
+            },
+            error: function () {
+            },
+            complete: function () {
+            },
+            loadStart: function (e) {
+                bar.removeAttribute('hidden');
+                bar.max = e.total;
+                bar.value = e.loaded;
+            },
+            progress: function (e) {
+                bar.max = e.total;
+                bar.value = e.loaded;
+            },
+            loadEnd: function (e) {
+                bar.max = e.total;
+                bar.value = e.loaded;
+            },
+            completeAll: function (data) {
+                datas = eval("(" + data.responseText + ")");
+                $(".btn-Import").attr("data-url", datas.Url);
+                setTimeout(function () {
+                    bar.setAttribute('hidden', 'hidden');
+                    $(".btn-Import").removeAttr("disabled");
+                }, 1000);
+                layer.msg('上传成功');
+            }
+        });
+    };
+    $(".btn-search").click(function () {
+        var select_de = $(".depart-select option:selected").val();
+        var select_uname = $(".search-uname").val().trim();
+        $.post("/UserInfo/Index", { "select_de": select_de, "select_uname": select_uname }, function (data) {
+            $(".role-table table tbody").html("");
+            var str = '';
+            var ulTempl = '<tr data-head="{0}"><td>{1}</td><td>{2}</td><td>{3}</td><td>{4}</td><td>{5}</td><td data-head="{6}">{7}</td><td data-head="{8}">{9}</td><td style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="{10}">{10}</td>';
+            $.each(data, function (i, e) {
+                var UState_m = e.UState == "1" ? "启用" : "未启用";
+                e.UserCode = e.UserCode == null ? "" : e.UserCode;
+                e.DepartName = e.DepartName == null ? "" : e.DepartName;
+                e.DepartID = e.DepartID == null ? "" : e.DepartID;
+                e.Umark = e.Umark == null ? "" : e.Umark;
+                e.UserPhone = e.UserPhone == null ? "" : e.UserPhone;
+                str += ulTempl.format(e.id, e.UserCode, e.UserName, e.UserIdCard, e.UserPhone, e.Usex, e.DepartID, e.DepartName, e.UState, UState_m, e.Umark);
+            });
+            $(".role-table table tbody").html(str);
+            $(".role-table table tbody").ready(function () {
+                UserLoadTr();
+            });
+        }, "json");
+    });
+    $(".btn-Import").click(function () {
+        if (typeof ($(this).attr("data-url")) == "undefined" || $(this).attr("data-url") == "") {
+            layer.msg("路径信息错误，请重新刷新页面上传");
+            return false;
+        }
+        $.post("/Wage/StartImport/1", { "url": $(this).attr("data-url") }, function (data) {
+            if (data.Statu === "ok") {
+                $(".btn-Import").attr("disabled", "disabled").removeAttr("data-url");
+                var errRows = data.Data.ErrRows.substr(0, data.Data.ErrRows.length - 1);
+                layer.alert("导入成功行数：" + data.Data.SuccRowsNum + "<br/>导入失败行数：" + errRows, { title: data.Msg }, function () {
+                    location.reload();
+                });
+            } else {
+                layer.msg(data.Msg);
+            }
+        }, "json");
+    });
+    $(function () {
+        UploadPro();
+        var myDate = new Date();
+        var myDate2 = new Date();
+        myDate.setFullYear(2013);
+        $(".datepicker").datepicker({
+            format: 'yyyy-mm',
+            weekStart: 1,
+            autoclose: true,
+            startView: 2,
+            maxViewMode: 2,
+            minViewMode: 1,
+            forceParse: false,
+            language: 'zh-CN',
+            startDate: myDate,
+            endDate: myDate2
+        });
+    });
+</script>

@@ -1,0 +1,29 @@
+﻿
+@{
+    Layout = null;
+}
+
+<div class="uk-panel uk-panel-box-modify uk-panel-modifypwd">
+    <h2>修改用户密码</h2>
+    @using (Ajax.BeginForm("ExeModify", "UserInfo", new { }, new AjaxOptions() { HttpMethod = "post", OnSuccess = "afterExemp" }, new { id = "modifyPwdForm" }))
+    {
+        <div><span>用&nbsp;&nbsp;户&nbsp;&nbsp;名:</span><input type="text" class="uk-form-width-medium" placeholder="必填" name="username" minlength="2" required value="@ViewData["userName"]" /></div>
+        <div><span>原始密码:</span><input type="password" class="uk-form-width-medium old_password" placeholder="必填" name="old_password" required/></div>
+        <div><span>新&nbsp;&nbsp;密&nbsp;&nbsp;码:</span><input type="password" class="uk-form-width-medium new_password" placeholder="必填" minlength="5" name="new_password" required/></div>
+        <div><span>确认密码:</span><input type="password" class="uk-form-width-medium confirm_password" placeholder="必填" minlength="5" required/></div>
+        <div><input type="submit" class="uk-button uk-button-primary btn-modify" value="修改" /></div>
+    }   
+</div>
+<script class="currentSS">
+    $("#modifyPwdForm").submit(function () {
+        if ($(".confirm_password").val() !== $(".new_password").val()) {
+            layer.msg("两次密码输入不一致！");
+            return false;
+        }
+        $(".old_password").val(BASE64.encoder($(".old_password").val()));
+        $(".new_password").val(BASE64.encoder($(".new_password").val()));
+    });
+    function afterExemp(data) {
+        E(data);
+    };
+</script>

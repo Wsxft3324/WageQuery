@@ -1,0 +1,256 @@
+﻿
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width" />
+    <title>主页</title>
+    <link href="~/Content/css/uikit.min.css" rel="stylesheet" />
+    <link href="~/Content/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="~/Content/css/bootstrap-datepicker3.css" rel="stylesheet" />
+    <link href="~/Content/css/font-awesome.min.css" rel="stylesheet" />
+    <link href="~/Content/css/site.css" rel="stylesheet" />
+    <link href="~/Content/css/simditor.min.css" rel="stylesheet" />
+    <script type="text/javascript" src="~/Scripts/jquery-1.7.1.min.js"></script>
+    <script type="text/javascript" src="~/Scripts/layer.js"></script>
+    <script type="text/javascript" src="~/Scripts/jquery.cookie.js"></script>
+    <script type="text/javascript" src="~/Scripts/uikit.min.js"></script>
+    <script type="text/javascript" src="~/Scripts/vue.min.js"></script>
+    <script type="text/javascript" src="~/Scripts/vue-router.js"></script>    
+    <script type="text/javascript" src="~/Scripts/jquery.validate.min.js"></script>
+    <script type="text/javascript" src="~/Scripts/jquery.unobtrusive-ajax.min.js"></script>
+    <script type="text/javascript" src="~/Scripts/base64.js"></script>
+    <script type="text/javascript" src="~/Scripts/module.min.js"></script>
+    <script type="text/javascript" src="~/Scripts/hotkeys.min.js"></script>
+    <script type="text/javascript" src="~/Scripts/uploader.min.js"></script>
+    <script type="text/javascript" src="~/Scripts/simditor.min.js"></script>
+    <script type="text/javascript" src="~/Scripts/bootstrap-datepicker.js"></script>
+    <script type="text/javascript" src="~/Scripts/bootstrap-datepicker.zh-CN.min.js"></script>
+    <script type="text/javascript">
+        var is_ready = 1;
+        var SH;
+        $(function () {
+            getMenu();
+            getPublicity();
+            getEmail();
+            $(".app-login").click(function () {
+                $.post("/Login/LoginOut", function (data) {
+                    window.location.href = data.Url;
+                });
+            });
+        });
+        String.prototype.format = function (args) {
+            var result = this;
+            if (arguments.length > 0) {
+                if (arguments.length == 1 && typeof (args) == "object") {
+                    for (var key in args) {
+                        if (args[key] != undefined) {
+                            var reg = new RegExp("({" + key + "})", "g");
+                            result = result.replace(reg, args[key]);
+                        }
+                    }
+                }
+                else {
+                    for (var i = 0; i < arguments.length; i++) {
+                        if (arguments[i] != undefined) {
+                            //var reg = new RegExp("({[" + i + "]})", "g");//这个在索引大于9时会有问题，谢谢何以笙箫的指出
+                            var reg = new RegExp("({)" + i + "(})", "g");
+                            result = result.replace(reg, arguments[i]);
+                        }
+                    }
+                }
+            }
+            return result;
+        }
+        var templ = '<div><div class="sys-left-m1"><h3><div class="sys-left-A"></div></h3><h3 class="">{0}</h3></div><ul class="uk-list sys-left-m2">';
+        var templ2 = '<li><router-link :to="{ name: \'history\', params: { Controller: \'{0}\', Action: \'{1}\' }}" id="{0}{1}">{2}</router-link></li>';
+        var templ3 = "<tr data-title='{0}' data-con='{1}' data-time='{2}' data-user='{3}'><td>{0}</td><td style='overflow: hidden;text-overflow: ellipsis;white-space: nowrap;'>{1}</td><td>{2}</td></tr>";
+        var templ4 = "<tr data-title='{0}' data-con='{1}' data-time='{2}' data-send='{3}' data-recipient='{4}'><td>{0}</td><td style='overflow: hidden;text-overflow: ellipsis;white-space: nowrap;'>{1}</td><td>{2}</td></tr>";
+        function getMenu() {
+            $.post("/Home/GetAction", function (data) {
+                $(".sys-left").html(WriteMenu(data));
+                $(".sys-left").ready(function () {
+                    var head = document.getElementsByTagName('head')[0];
+                    var script = document.createElement('script');
+                    script.type = 'text/javascript';
+                    script.src = '/Scripts/main.min.js';
+                    head.appendChild(script)
+                });          
+            }, "json");
+            $("#modal15,#modal16").click(function () {
+                $("#modal15,#modal16").animate({ opacity: 0 }, 600);
+                setTimeout('$("#modal15,#modal16").css("display", "none")', 600);
+            });
+            $(".uk-modal-modify").click(function (event) {
+                event.stopPropagation();
+            });
+            $("#modal15 .uk-modal-modify,#modal16 .uk-modal-modify").css("height", window.screen.height * 0.618);
+        };
+        function WriteMenu(data) {
+            var str = '';
+            $.each(data, function (i, e) {
+                str += templ.format(e.text);
+                $.each(e.children, function (i, item) {
+                    str += templ2.format(item.attributes.controller, item.attributes.action, item.text);
+                });
+                str += '</ul></div>';
+            });
+            return str;
+        };
+        function getPublicity() {
+            $.post("/Home/GetPublicity", function (data) {
+                $(".publicity-info .homePub-table table tbody").html(WritePublicity(data));
+                $(".publicity-info .homePub-table table tbody").ready(function () {
+                    is_ready = 2;
+                    $(".publicity-info .homePub-table table tbody tr").click(function () {
+                        $("#modal15 .uk-modal-header h2").text($(this).attr("data-title"));
+                        $("#modal15 .uk-modal-header").children("div").eq(1).children("span").eq(1).html($(this).attr("data-time"))
+                        $("#modal15 .uk-modal-header").children("div").eq(0).children("span").eq(1).html($(this).attr("data-user"))
+                        $("#modal15 .PublicityCon").text("").append($(this).attr("data-con"));
+                        $("#modal15").css("display", 'block').animate({ opacity: 1 }, 600);
+                    });
+                });
+            }, "json");
+        };
+        function WritePublicity(data) {
+            var str = '';
+            $.each(data, function (i, e) {
+                e.Title = e.Title == null ? "" : e.Title;
+                e.Con = e.Con == null ? "" : e.Con;
+                e.Subtime = e.Subtime == null ? "" : ChangeDateFormat(e.Subtime);
+                str += templ3.format(e.Title, e.Con, e.Subtime, e.UserName);
+            });
+            return str;
+        };
+        function getEmail() {
+            $.post("/Home/GetEmail", function (data) {
+                $(".email-info .homeEmail-table table tbody").html(WriteEmail(data));
+                $(".email-info .homeEmail-table table tbody").ready(function () {
+                    SH = setInterval(function () { SynHeight(); }, 10);
+                    $(".email-info .homeEmail-table table tbody tr").click(function () {
+                        $("#modal16 .uk-modal-header h2").text($(this).attr("data-title"));
+                        $("#modal16 .uk-modal-header").children("div").eq(0).children("span").eq(1).html($(this).attr("data-send"));
+                        $("#modal16 .uk-modal-header").children("div").eq(1).children("span").eq(1).html($(this).attr("data-recipient"));
+                        $("#modal16 .uk-modal-header").children("div").eq(2).children("span").eq(1).html($(this).attr("data-time"));
+                        $("#modal16 .PublicityCon").text("").append($(this).attr("data-con"));
+                        $("#modal16").css("display", 'block').animate({ opacity: 1 }, 600);
+                    });
+                });
+            }, "json");
+        };
+        function WriteEmail(data) {
+            var str = '';
+            $.each(data, function (i, e) {
+                e.Title = e.Title == null ? "" : e.Title;
+                e.Con = e.Con == null ? "" : e.Con;
+                e.Subtime = e.Subtime == null ? "" : ChangeDateFormat(e.Subtime);
+                e.SendName = e.SendName == null ? "" : e.SendName;
+                e.RecipientName = e.RecipientName == null ? "" : e.RecipientName;
+                str += templ4.format(e.Title, e.Con, e.Subtime, e.SendName, e.RecipientName);
+            });
+            return str;
+        };
+        function SynHeight() {
+            if (is_ready == 2) {
+                var ph = document.getElementById("publicity-info").offsetHeight;
+                var eh = document.getElementById("email-info").offsetHeight;
+                if (ph > eh) {
+                    $("#email-info").css("height", ph + "px");
+                } else {
+                    $("#publicity-info").css("height", eh + "px");
+                }
+                clearInterval(SH);
+            }
+        };
+    </script>
+</head>
+<body>
+    <div class="sys-top">
+        <div class="sys-top-A">
+            <div>
+                <img src="~/Content/images/001.png" />
+                <span>@ViewData["UserName"]</span>
+            </div>
+            <div id="app-desk">
+                <img src="~/Content/images/002.png" />
+                <router-link :to="{ name: 'history', params: { Controller: 'Home', Action: 'Index' }}" class="sys-top-desk">桌面</router-link>
+            </div>
+            <div class="app-login">
+                <img src="~/Content/images/003.png" />
+                <span style="cursor:pointer">注销</span>
+            </div>
+        </div>
+    </div>
+    <div id="app">
+        <div class="sys-left" style="">
+            
+        </div>
+        <div class="sys-center">
+            <div class="uk-panel uk-panel-box-modify uk-panel-modifypwd publicity-info" id="publicity-info" style="margin:1%;width:47%;display:inline-block;">
+                <div class="homePub-table" style="padding:0;margin:10px auto;width:100%!important">
+                    <table class="uk-table uk-table-striped " style="table-layout:fixed;word-wrap:break-word">
+                        <thead>
+                            <tr>
+                                <th>公告标题</th>
+                                <th>公告内容</th>
+                                <th>发布时间</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="uk-panel uk-panel-box-modify uk-panel-modifypwd email-info" id="email-info" style="margin:1%;width:47%;display:inline-block;">
+                <div class="homeEmail-table" style="padding:0;margin:10px auto;width:100%!important">
+                    <table class="uk-table uk-table-striped " style="table-layout:fixed;word-wrap:break-word">
+                        <thead>
+                            <tr>
+                                <th>邮件标题</th>
+                                <th>邮件内容</th>
+                                <th>发件时间</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <transition>
+                <keep-alive>
+                    <router-view></router-view>
+                </keep-alive>
+            </transition>
+        </div>
+    </div>
+
+    <div id="modal15" class="uk-modal uk-open" aria-hidden="false" style="display: none;top:-100px;opacity:0;overflow-y: scroll;">
+        <div class="uk-modal-dialog uk-modal-modify" style="width:40%;overflow:auto;">
+            <button type="button" class="uk-modal-close uk-close"></button>
+            <div class="uk-modal-header">
+                <h2 style="text-align: center;"></h2>
+                <div class="PubSPerson" style="float: right;"><span>发布人：</span><span style="width:180px;text-align:center;display:inline-block"></span></div>
+                <div class="PubStime"><span>发布时间：</span><span style="width:180px;text-align:center;display:inline-block"></span></div>
+            </div>
+            <p class="PublicityCon" style="text-align:initial"></p>
+        </div>
+    </div>
+    <div id="modal16" class="uk-modal uk-open" aria-hidden="false" style="display: none;top:-100px;opacity:0;overflow-y: scroll;">
+        <div class="uk-modal-dialog uk-modal-modify" style="width:40%;overflow:auto;">
+            <button type="button" class="uk-modal-close uk-close"></button>
+            <div class="uk-modal-header">
+                <h2 style="text-align: center;"></h2>
+                <div class="PubSPerson" style="float: right;width: 100%;text-align: right;"><span>发件人：</span><span style="width:180px;text-align:center;display:inline-block"></span></div>
+                <div class="PubRPerson" style="float:right"><span style="text-align: right;">收件人：</span><span style="width:180px;text-align:center;display:inline-block"></span></div>
+                <div class="PubStime"><span>发送时间：</span><span style="width:180px;text-align:center;display:inline-block"></span></div>
+            </div>
+            <p class="PublicityCon" style="text-align:initial"></p>
+        </div>
+    </div>
+
+</body>
+</html>

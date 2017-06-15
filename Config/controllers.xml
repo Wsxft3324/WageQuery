@@ -1,0 +1,74 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<objects xmlns="http://www.springframework.net">
+
+  <object type="YcuWageQuery.Web.Controllers.LoginController, YcuWageQuery.Web" singleton="false" >
+    <property name="UserInfoService" ref="UserInfoService" />
+    <property name="MsgModel" ref="MessageModel" />
+  </object>
+
+  <object type="YcuWageQuery.Web.Controllers.HomeController, YcuWageQuery.Web" singleton="false" >
+    <property name="RoleService" ref="RoleService" />
+    <property name="User_RoleService" ref="R_User_RoleService" />
+    <property name="AuthInfoService" ref="AuthInfoService" />
+    <property name="Role_AuthService" ref="R_Role_AuthService" />
+    <property name="User_PublicityService" ref="R_User_PublicityService" />
+    <property name="EMailService" ref="EMailService" />
+    <property name="UserInfoService" ref="UserInfoService" />
+  </object>
+
+  <object type="YcuWageQuery.Web.Controllers.UserInfoController, YcuWageQuery.Web" singleton="false" >
+    <property name="MsgModel" ref="MessageModel" />
+    <property name="UserInfoService" ref="UserInfoService" />
+    <property name="DepartmentService" ref="DepartmentService" />
+    <property name="User_DepartmentService" ref="R_User_DepartmentService" />
+    <property name="User_DepartService" ref="R_User_DepartService" />
+    <property name="User_RoleService" ref="R_User_RoleService" />
+  </object>
+
+  <object type="YcuWageQuery.Web.Controllers.ArchiveController, YcuWageQuery.Web" singleton="false" >
+    <property name="MsgModel" ref="MessageModel" />
+    <property name="DepartmentService" ref="DepartmentService" />
+    <property name="User_DepartmentService" ref="R_User_DepartmentService" />
+    <property name="Wage_ProContrastService" ref="Wage_ProContrastService" />
+  </object>
+
+  <object type="YcuWageQuery.Web.Controllers.MessageController, YcuWageQuery.Web" singleton="false" >
+    <property name="MsgModel" ref="MessageModel" />
+    <property name="UserInfoService" ref="UserInfoService" />
+    <property name="PublicityService" ref="PublicityService" />
+    <property name="User_PublicityService" ref="R_User_PublicityService" />
+    <property name="EMailService" ref="EMailService" />
+  </object>
+
+  <object type="YcuWageQuery.Web.Controllers.RoleController, YcuWageQuery.Web" singleton="false" >
+    <property name="MsgModel" ref="MessageModel" />
+    <property name="RoleService" ref="RoleService" />
+    <property name="User_RoleService" ref="R_User_RoleService" />
+    <property name="Role_AuthService" ref="R_Role_AuthService" />
+    <property name="UserInfoService" ref="UserInfoService" />
+    <property name="DepartmentService" ref="DepartmentService" />
+    <property name="User_DepartmentService" ref="R_User_DepartmentService" />
+    <property name="User_DepartService" ref="R_User_DepartService" />
+    <property name="User_Role_SService" ref="R_User_Role_SService" />
+  </object>
+
+  <object type="YcuWageQuery.Web.Controllers.WageController, YcuWageQuery.Web" singleton="false" >
+    <property name="MsgModel" ref="MessageModel" />
+    <property name="Wage_ProContrastService" ref="Wage_ProContrastService" />
+    <property name="UserInfoService" ref="UserInfoService" />
+    <property name="WageService" ref="WageService" />
+    <property name="User_WageService" ref="R_User_WageService" />
+    <property name="DepartmentService" ref="DepartmentService" />
+    <property name="User_DepartService" ref="R_User_DepartService" />
+  </object>
+
+  <object type="YcuWageQuery.Web.Controllers.AndroidController, YcuWageQuery.Web" singleton="false" >
+    <property name="UserInfoService" ref="UserInfoService" />
+    <property name="Wage_ProContrastService" ref="Wage_ProContrastService" />
+    <property name="WageService" ref="WageService" />
+  </object>
+  <!--intentionally do NOT register the AccountController with the container; demonstrates that the underlying
+  default controller factory will properly (attempt to!) resolve all controllers not registered with Spring.NET
+  using its default controller resolution behavoir-->
+  <!--<object type="Spring.MvcQuickStart.Controllers.AccountController, Spring.MvcQuickStart" singleton="false" />-->
+</objects>

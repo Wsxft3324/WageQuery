@@ -1,0 +1,139 @@
+﻿@using YcuWageQuery.Model;
+@{
+    Layout = null;
+}
+
+<div class="uk-panel uk-panel-box-modify uk-panel-userinfo" style="width:100%;">
+    <label>选择日期:</label>
+    <input type="text" class="datepicker startDate" placeholder="请选择日期" />
+    <input type="checkbox" class="IsEnd" style="width:15px;height:15px;" />
+    <span>到</span>
+    <input type="text" class="datepicker endDate" placeholder="请选择日期" />
+    <label>部门:</label>
+    <select class="depart-select">
+        <option value="0" selected="selected"></option>
+        @foreach (var d in ViewData["DepartinfoList"] as List<Department>)
+        {
+            <option value="@d.id">@d.DepartName</option>
+        }
+    </select>
+    <label>姓名搜索:</label>
+    <input type="text" class="search-uname" />
+    <input type="button" class="uk-button uk-button-primary btn-search" style="height:29px;line-height:normal;margin-left:25px;margin-bottom:3px;" value="查询" />
+</div>
+
+<div class="uk-panel uk-panel-box-modify uk-panel-modifypwd" style="margin-top:0;width:100%;padding:0;display:none;">
+    <div class="role-table page-wage-table2" style="padding:0;margin:10px auto;width:60%!important;">
+        <table class="uk-table uk-table-striped " style="table-layout:fixed;word-wrap:break-word">
+            <thead>
+                <tr>
+                    <th>姓名</th>
+                    <th>部门</th>
+                    <th>年</th>
+                    <th>月</th>
+                    <th>奖金</th>
+                    <th style="width:180px">备注</th>
+                    <th>删除</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+</div>
+
+<div id="modal5" class="uk-modal uk-open" aria-hidden="false" style="display: none;top:-100px;opacity:0;overflow-y: scroll;">
+    <div class="uk-modal-dialog uk-modal-modify" style="width:40%;overflow:auto;">
+        <button type="button" class="uk-modal-close uk-close"></button>
+        <div class="uk-modal-header">
+            <h2>工资备注</h2>
+            <div class="PubStime"><span>工资时间：</span><span style="width:80px;text-align:center;display:inline-block"></span></div>
+        </div>
+        <p class="PublicityCon" style="text-align:initial"></p>
+    </div>
+</div>
+
+<script type="text/javascript" class="currentSS">
+    var AfterLoadTr = function () {
+        $(".role-table table tbody tr").each(function (i, e) {
+            $(this).children().eq(6).click(function () {
+                layer.confirm('是否要删除？', {
+                    btn: ['确认删除', '取消']
+                }, function () {
+                    deleteBonus($(e).attr("data-head"));
+                });              
+            });
+        });
+    };
+    $("#modal5").click(function () {
+        $("#modal5").animate({ opacity: 0 }, 600);
+        setTimeout('$("#modal5").css("display", "none")', 600);
+    });
+    $(".btn-search").click(function () {
+        var startDate = $(".startDate").val();
+        if (startDate.trim() == "") {
+            layer.msg("没有选择日期！", function () { });
+            return;
+        }
+        var endDate = $(".IsEnd").is(":checked") ? $(".endDate").val() : "";
+        var type = 2;
+        var select_de = $(".depart-select option:selected").val();
+        var select_uname = $(".search-uname").val().trim();
+        $.post("/Wage/SearchWage", { "startDate": startDate, "endDate": endDate, "select_de": select_de, "select_uname": select_uname, "type": type, "utype": "1" }, function (data) {
+            if (data.Statu == "error") {
+                layer.msg(data.Msg, function () { });
+                return;
+            }
+            var ulTempl = '';
+            var LoadClass = "page-wage-table";
+            if (data.length == 0) {
+                layer.msg("未查到信息！", function () { });
+                return;
+            }
+            var Wage = new Array();
+            for (var i = 1; i <= 40; i++) {
+                Wage[i] = 0;
+            }
+            $.each(data, function (i, e) {
+                ulTempl += '';
+                var t1 = '<tr data-head="{0}"><td>{1}</td><td>{2}</td><td>{3}</td><td>{4}</td>';
+                t1 = t1.format(e.WageID, e.UserName, e.DepartName , e.WageYear, e.WageMonth);
+                ulTempl += t1;
+                if (type == 2) {
+                    LoadClass += "2";
+                    ulTempl += "<td>" + e.Wage1 + "</td>";
+                    $(".page-wage-table").parent().css("display", "none");
+                    $(".page-wage-table2").parent().css("display", "block");
+                    Wage[1] = addNum(Wage[1], e.Wage1).toFixed(2);
+                } 
+                ulTempl += "<td title='" + e.Wmark + "' style='overflow: hidden;text-overflow: ellipsis;white-space: nowrap;'>" + e.Wmark + "</td><td><i class=\"icon-trash\" style=\"font-size:20px;\"></i></td></tr>";
+            });
+            $("." + LoadClass + " table tbody").html("").append(ulTempl);
+            $("." + LoadClass + " table tbody").ready(function () {
+                AfterLoadTr();
+            });
+        }, "json");
+    });
+    function deleteBonus(id) {
+        $.post("/Wage/DeleteBonus", { "id": id }, function (data) {
+            E(data);
+        }, "json");
+    };
+    $(function () {
+        //$("#modal5 .uk-modal-modify").css("height", window.screen.height * 0.618);
+        var myDate = new Date();
+        var myDate2 = new Date();
+        myDate.setFullYear(2013);
+        $(".datepicker").datepicker({
+            format: 'yyyy-mm',
+            weekStart: 1,
+            autoclose: true,
+            startView: 2,
+            maxViewMode: 2,
+            minViewMode: 1,
+            forceParse: false,
+            language: 'zh-CN',
+            startDate: myDate,
+            endDate: myDate2
+        });
+    });
+</script>

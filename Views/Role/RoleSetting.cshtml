@@ -1,0 +1,114 @@
+﻿@using YcuWageQuery.Model;
+@{
+    Layout = null;
+}
+
+<div class="uk-panel uk-panel-box-modify uk-panel-userinfo" style="width:54.8%">
+    <label>部门:</label>
+    <select class="depart-select">
+        <option value="0" selected="selected"></option>
+        @foreach (var d in ViewData["DepartinfoList"] as List<Department>)
+        {
+            <option value="@d.id">@d.DepartName</option>
+        }
+    </select>
+    <label>姓名搜索:</label>
+    <input type="text" class="search-uname" />
+    <input type="button" class="uk-button uk-button-primary btn-search" style="height:29px;line-height:normal;margin-bottom:3px;" value="查询" />
+    <label>选择角色:</label>
+    <select class="role-select">
+        <option value="0" selected="selected"></option>
+        @foreach (var d in ViewData["RoleinfoList"] as List<Role>)
+        {
+            <option value="@d.id">@d.RoleName</option>
+        }
+    </select>
+    <input type="button" class="uk-button uk-button-primary btn-RSetting" title="根据当前查出的人员一键设置角色信息" style="height:30px;line-height:normal;margin-left:40px;margin-bottom:3px;" value="设置" />
+
+</div>
+
+<div class="uk-panel uk-panel-box-modify uk-panel-modifypwd" style="margin-top:0;width:54.8%">
+    <div class="role-table" style="padding:0;margin:10px auto;width:100%!important">
+        <table class="uk-table uk-table-striped " style="table-layout:fixed;word-wrap:break-word">
+            <thead>
+                <tr>
+                    <th>人员编码</th>
+                    <th>姓名</th>
+                    <th>角色</th>
+                    <th>删除</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var r in ViewData["Role_UserinfoList"] as List<R_User_Role_S>)
+                {
+                    <tr data-head="@r.id">
+                        <td>@r.UserCode</td>
+                        <td>@r.UserName</td>
+                        <td data-head="@r.RoleID">@r.RoleName</td>
+                        <td><i class="icon-trash" style="font-size:20px;"></i></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script type="text/javascript" class="currentSS">
+    var RULoad = function () {
+        $(".role-table table tbody tr").each(function (i, e) {
+            $(this).children("td").eq(3).click(function () {
+                layer.confirm('是否要删除？', {
+                    btn: ['确认删除', '取消']
+                }, function () {
+                    deleteRUInfo($(e).attr("data-head"));
+                });
+            });
+        });
+    };
+    $(".btn-search").click(function () {
+        var select_de = $(".depart-select option:selected").val();
+        var select_uname = $(".search-uname").val().trim();
+        $.post("/Role/RoleSetting", { "select_de": select_de, "select_uname": select_uname }, function (data) {
+            $(".role-table table tbody").html("");
+            var str = '';
+            var ulTempl = '<tr data-head="{0}"><td>{1}</td><td>{2}</td><td data-head="{3}">{4}</td><td><i class="icon-trash" style="font-size:20px;"></i></td></tr>';
+            $.each(data, function (i, e) {
+                e.UserCode = e.UserCode == null ? "" : e.UserCode;
+                e.UserName = e.UserName == null ? "无名" : e.UserName;
+                e.RoleID = e.RoleID == null ? "" : e.RoleID;
+                e.RoleName = e.RoleName == null ? "" : e.RoleName;
+                str += ulTempl.format(e.id, e.UserCode, e.UserName, e.RoleID, e.RoleName);
+            });
+            $(".role-table table tbody").html(str);
+            $(".role-table table tbody").ready(function () {
+                RULoad();
+            });
+        }, "json");
+    });
+    $(".btn-RSetting").click(function () {
+        var RuiList = "";
+        var RoleID = $(".role-select option:selected").val();
+        if (RoleID == 0) {
+            layer.msg("您还没有选择角色！", function () { });
+            return false;
+        }
+        $(".role-table table tbody tr").each(function (i, e) {
+            RuiList += $(this).attr("data-head") + "-";
+        });
+        layer.msg('系统正在处理中', {
+            icon: 16, shade: 0.01
+        });
+        $.post("/Role/EditRU", { "RuiList": RuiList, "RoleID": RoleID }, function (data) {
+            layer.closeAll();
+            E(data);
+        }, "json");
+    });
+    $(function () {
+        RULoad();
+    });
+    function deleteRUInfo(id) {
+        $.post("/Role/DeleteRU/" + id, function (data) {
+            E(data);
+        }, "json");
+    };
+</script>

@@ -1,0 +1,36 @@
+﻿
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>TestAndroid</title>
+    <script src="~/Scripts/jquery-1.7.1.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            $(".test-android1").click(function () {
+                $.post("/Login/AndroidUserLogin", { "np": "admin-123456" }, function (data) {
+                    console.log(data);
+                });
+            });
+            $(".test-android2").click(function () {
+                $.post("/Android/AndroidModifuPwd", { "id": "1", "oldpwd": "12345", "newpwd": "123456" }, function (data) {
+                    console.log(data);
+                });
+            });
+        });
+    </script>
+</head>
+<body>
+    <div>
+        <input type="button" class="test-android1" value="测试安卓登录"/> 
+    </div>
+    <div>
+        <input type="button" class="test-android2" value="修改密码" />
+    </div>
+</body>
+</html>
